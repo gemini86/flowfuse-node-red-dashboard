@@ -141,7 +141,7 @@
                 group: { type: 'ui-group', required: true },
                 order: { value: 0 },
                 value: { value: 'payload', required: false },
-                valueType: { value: 'msg' },
+                valueType: { value: 'percent' },
                 width: {
                     value: 3,
                     validate: function (v) {
@@ -319,9 +319,17 @@
 
                 // Setup TypedInput for value processing
                 $('#node-input-value').typedInput({
-                    default: 'msg',
+                    default: 'percent',
                     typeField: $('#node-input-valueType'),
-                    types: ['msg', 'str', 'num', 'jsonata', 'flow', 'global']
+                    types: [
+                        { value: 'percent', label: c_('ui-gauge.label.percentOfRange') || 'Percent of range', icon: 'fa fa-percent', hasValue: false },
+                        'msg',
+                        'str',
+                        'num',
+                        'jsonata',
+                        'flow',
+                        'global'
+                    ]
                 })
 
                 // if there is no config.value, then set it to payload

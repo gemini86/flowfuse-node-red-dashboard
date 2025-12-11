@@ -66,6 +66,11 @@ module.exports = function (RED) {
                 const processValue = async () => {
                     const value = msg.payload // default to payload if evaluation fails
 
+                    if (config.valueType === 'percent') {
+                        msg.payload = value
+                        return
+                    }
+
                     if (config.valueType && config.value) {
                         const results = await asyncEvaluateNodeProperty(RED, config.value, config.valueType, node, msg)
                         msg.payload = results

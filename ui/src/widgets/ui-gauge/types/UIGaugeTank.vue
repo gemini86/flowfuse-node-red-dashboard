@@ -3,7 +3,7 @@
         <label v-if="props.label" class="nrdb-ui-gauge-title">{{ props.label }}</label>
         <div
             class="nrdb-ui-gauge-tank"
-            :style="{'--gauge-fill': color, '--gauge-fill-pc': pc + '%', 'color': getTextColor(props.segments, value)}"
+            :style="{'--gauge-fill': color, '--gauge-fill-pc': pc + '%', 'color': getTextColor(props.segments, numericValue)}"
         >
             <div class="nrdb-ui-gauge-tank--center">
                 <div ref="fill" class="nrdb-ui-gauge-tank--fill" />
@@ -28,7 +28,7 @@
                     </path>
                 </svg>
                 <div ref="labels" class="nrdb-ui-gauge-tank-labels">
-                    <label class="nrdb-ui-gauge-tank--fglabel" :style="{'line-height': labelLineHeight}">{{ pc }}%</label>
+                    <label class="nrdb-ui-gauge-tank--fglabel" :style="{'line-height': labelLineHeight}">{{ displayValue }}</label>
                 </div>
             </div>
         </div>
@@ -45,7 +45,7 @@ export default {
         id: { type: String, required: true },
         props: { type: Object, default: () => ({}) },
         state: { type: Object, default: () => ({}) },
-        value: { type: Number, required: true }
+        value: { type: [Number, String], required: true }
     },
     data () {
         return {
@@ -57,14 +57,25 @@ export default {
     },
     computed: {
         color: function () {
-            return UIGaugeMethods.valueToColor(this.props.segments, this.value)
+            return UIGaugeMethods.valueToColor(this.props.segments, this.numericValue)
         },
         pc: function () {
-            if (typeof this.value !== 'undefined') {
-                return Math.max(0, Math.min(Math.round((this.value - this.props.min) / (this.props.max - this.props.min) * 100), 100))
+            if (typeof this.numericValue !== 'undefined') {
+                return Math.max(0, Math.min(Math.round((this.numericValue - this.props.min) / (this.props.max - this.props.min) * 100), 100))
             } else {
                 return 0
             }
+        },
+        numericValue: function () {
+            const numericValue = Number(this.value)
+            return Number.isFinite(numericValue) ? numericValue : (Number.isFinite(this.props.min) ? this.props.min : 0)
+        },
+        displayValue: function () {
+            const rawValue = this.props.valueType === 'percent'
+                ? `${this.pc}%`
+                : (typeof this.value === 'object' ? JSON.stringify(this.value) : this.value)
+            const unit = this.props.units ? ` ${this.props.units}` : ''
+            return `${this.props.prefix || ''}${rawValue ?? ''}${this.props.suffix || ''}${unit}`
         },
         clipId: function () {
             return `clip-${this.id}`
@@ -98,7 +109,8 @@ export default {
             const h = this.$refs.fill?.clientHeight || 0
             const w = this.$refs.fill?.clientWidth || 0
             // read from the DOM if it's ready, otherwise reverse-engineer
-            this.labelLineHeight = this.$refs.labels ? `${this.$refs.labels.clientHeight}px` : `${100 * h / this.pc}px`
+            const divisor = this.pc || 100
+            this.labelLineHeight = this.$refs.labels ? `${this.$refs.labels.clientHeight}px` : `${100 * h / divisor}px`
             // work out if we need to offset our SVG mask
             if (h >= 0 && this.pc !== 0) {
                 this.svgBottom = h
