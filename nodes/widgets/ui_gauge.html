@@ -253,7 +253,9 @@
                     if (type === 'gauge-tile' || type === 'gauge-battery' || type === 'gauge-tank') {
                         $('#node-input-container-sizes').hide()
                         $('#node-input-container-gstyle').hide()
-                        $('#node-input-container-label-extras').hide()
+                        if (type !== 'gauge-tank') {
+                            $('#node-input-container-label-extras').hide()
+                        }
                         if (type === 'gauge-tile') {
                             $('#node-input-container-tile-options').show()
                         } else {
@@ -321,7 +323,15 @@
                 $('#node-input-value').typedInput({
                     default: 'msg',
                     typeField: $('#node-input-valueType'),
-                    types: ['msg', 'str', 'num', 'jsonata', 'flow', 'global']
+                    types: [
+                        'msg',
+                        'str',
+                        'num',
+                        'jsonata',
+                        'flow',
+                        'global',
+                        { value: 'percent', label: 'percent', icon: 'fa fa-percent', hasValue: false }
+                    ]
                 })
 
                 // if there is no config.value, then set it to payload

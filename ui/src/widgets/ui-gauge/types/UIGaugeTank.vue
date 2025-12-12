@@ -28,7 +28,14 @@
                     </path>
                 </svg>
                 <div ref="labels" class="nrdb-ui-gauge-tank-labels">
-                    <label class="nrdb-ui-gauge-tank--fglabel" :style="{'line-height': labelLineHeight}">{{ pc }}%</label>
+                    <div class="nrdb-ui-gauge-tank--label-stack">
+                        <label class="nrdb-ui-gauge-tank--fglabel" :style="showUnits ? null : { 'line-height': labelLineHeight }">
+                            {{ displayText }}
+                        </label>
+                        <label v-if="showUnits" class="nrdb-ui-gauge-tank--units">
+                            {{ props.units }}
+                        </label>
+                    </div>
                 </div>
             </div>
         </div>
@@ -58,6 +65,17 @@ export default {
     computed: {
         color: function () {
             return UIGaugeMethods.valueToColor(this.props.segments, this.value)
+        },
+        displayText: function () {
+            const prefix = this.props.prefix || ''
+            const suffix = this.props.suffix || ''
+            if (this.props.valueType === 'percent') {
+                return `${this.pc}%` // no prefix/suffix in percent mode
+            }
+            return `${prefix}${this.value ?? 0}${suffix}`
+        },
+        showUnits: function () {
+            return !!this.props.units
         },
         pc: function () {
             if (typeof this.value !== 'undefined') {
@@ -208,6 +226,27 @@ export default {
         var(--text-border-inv) var(--text-border-inv) var(--text-border-color),
         var(--text-border-inv) var(--text-border) var(--text-border-color),
         var(--text-border) var(--text-border) var(--text-border-color);
+}
+
+.nrdb-ui-gauge-tank--label-stack {
+    gap: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+nrdb-ui-gauge-tank--label-stack .nrdb-ui-gauge-tank--fglabel,
+.nrdb-ui-gauge-tank--label-stack .nrdb-ui-gauge-tank--units {
+    height: auto;
+    width: auto;
+    line-height: 1;
+}
+
+.nrdb-ui-gauge-tank--units {
+    margin-top: 0.1em;
+    font-size: min(1.25rem, 30cqmin);
+    font-weight: normal;
+    color: inherit;
 }
 
 .nrdb-ui-gauge-tank--center {
