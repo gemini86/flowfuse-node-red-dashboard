@@ -3,7 +3,7 @@
         <label v-if="props.label" class="nrdb-ui-gauge-title">{{ props.label }}</label>
         <div
             class="nrdb-ui-gauge-tank"
-            :style="{'--gauge-fill': color, '--gauge-fill-pc': pc + '%', 'color': getTextColor(props.segments, value)}"
+            :style="{'--gauge-fill': color, '--gauge-fill-pc': pc + '%', 'color': getTextColor(props.segments, safeValue)}"
         >
             <div class="nrdb-ui-gauge-tank--center">
                 <div ref="fill" class="nrdb-ui-gauge-tank--fill" />
@@ -59,12 +59,17 @@ export default {
             labelLineHeight: 0,
             svgBottom: 0,
             amplitude: 15,
-            svgScaleRatio: 1
+            svgScaleRatio: 1,
+            savedValue: null
         }
     },
     computed: {
+        safeValue: function () {
+            const n = typeof this.value === 'string' ? Number(this.value) : this.value
+            return Number.isFinite(n) ? n : (this.savedValue ?? 0)
+        },
         color: function () {
-            return UIGaugeMethods.valueToColor(this.props.segments, this.value)
+            return UIGaugeMethods.valueToColor(this.props.segments, this.safeValue)
         },
         displayText: function () {
             const prefix = this.props.prefix || ''
@@ -72,14 +77,14 @@ export default {
             if (this.props.valueType === 'percent') {
                 return `${this.pc}%` // no prefix/suffix in percent mode
             }
-            return `${prefix}${this.value ?? 0}${suffix}`
+            return `${prefix}${this.safeValue ?? 0}${suffix}`
         },
         showUnits: function () {
             return !!this.props.units
         },
         pc: function () {
-            if (typeof this.value !== 'undefined') {
-                return Math.max(0, Math.min(Math.round((this.value - this.props.min) / (this.props.max - this.props.min) * 100), 100))
+            if (typeof this.safeValue !== 'undefined' && this.safeValue !== null) {
+                return Math.max(0, Math.min(Math.round((this.safeValue - this.props.min) / (this.props.max - this.props.min) * 100), 100))
             } else {
                 return 0
             }
@@ -99,6 +104,13 @@ export default {
     },
     watch: {
         value: function () {
+            // Coerce strings and update savedValue only when numeric & finite
+            const n = typeof this.value === 'string' ? Number(this.value) : this.value
+            if (!Number.isFinite(n)) {
+                // Ignore invalid updates; keep existing savedValue
+                return
+            }
+            this.savedValue = n
             this.$nextTick(() => {
                 // react to the fill element being updated
                 this.updateMask()
