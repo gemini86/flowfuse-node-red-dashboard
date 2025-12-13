@@ -253,9 +253,6 @@
                     if (type === 'gauge-tile' || type === 'gauge-battery' || type === 'gauge-tank') {
                         $('#node-input-container-sizes').hide()
                         $('#node-input-container-gstyle').hide()
-                        if (type !== 'gauge-tank') {
-                            $('#node-input-container-label-extras').hide()
-                        }
                         if (type === 'gauge-tile') {
                             $('#node-input-container-tile-options').show()
                         } else {
@@ -267,7 +264,12 @@
                         $('#node-input-container-label-extras').show()
                         $('#node-input-container-tile-options').hide()
                     }
-
+                    if (type !== 'gauge-tank') {
+                        $('#node-input-container-label-extras').hide()
+                        $('#node-input-segments-container').find('.red-ui-typedInput-container').show()
+                    } else {
+                        $('#node-input-segments-container').find('.red-ui-typedInput-container').hide()
+                    }
                     if (isInitialised && isChanging && isDefault(oldType)) {
                         const defaults = DEFAULTS[currentType]
                         setup(defaults?.segments, defaults?.min, defaults?.max)
